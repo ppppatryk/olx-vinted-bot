@@ -10,7 +10,6 @@ import sys
 import time
 import undetected_chromedriver as uc
 
-# Wczytaj konfigurację
 with open('config.json') as f:
     config = json.load(f)
 
@@ -28,17 +27,7 @@ blocked_keywords = [
 ]
 
 headers = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0",
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-    "Accept-Language": "pl,en-US;q=0.7,en;q=0.3",
-    "Accept-Encoding": "gzip, deflate, br",
-    "DNT": "1",
-    "Connection": "keep-alive",
-    "Upgrade-Insecure-Requests": "1",
-    "Sec-Fetch-Dest": "document",
-    "Sec-Fetch-Mode": "navigate",
-    "Sec-Fetch-Site": "none",
-    "Sec-Fetch-User": "?1"
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0"
 }
 
 def get_vinted_ads_with_selenium(url):
@@ -49,7 +38,6 @@ def get_vinted_ads_with_selenium(url):
     driver = uc.Chrome(options=options, driver_executable_path="./bin/chromedriver")
 
     ads = []
-
     try:
         driver.get(url)
         time.sleep(5)
@@ -68,7 +56,7 @@ def get_vinted_ads_with_selenium(url):
                 price_elem = item.find('span', {'data-testid': lambda x: x and "price" in x})
                 price = price_elem.text.strip() if price_elem else "Brak ceny"
 
-                # Wejdź na stronę ogłoszenia i sprawdź opis
+                # Wejdź do ogłoszenia i sprawdź opis
                 try:
                     driver.get(link)
                     time.sleep(3)
@@ -76,18 +64,16 @@ def get_vinted_ads_with_selenium(url):
                     full_text = detail_soup.get_text().lower()
                     if any(keyword in full_text for keyword in blocked_keywords):
                         continue
-                except Exception as e:
-                    print(f"Błąd wejścia w ogłoszenie Vinted: {e}")
+                except:
                     continue
 
                 ads.append({'link': link, 'title': title, 'price': price})
-            except Exception as e:
-                print(f"Błąd ogłoszenia Vinted: {e}")
+            except:
+                continue
     finally:
         driver.quit()
 
     return ads
-
 async def check_ads():
     await bot.wait_until_ready()
 
@@ -125,8 +111,8 @@ async def check_ads():
                             price = price_elem.text.strip() if price_elem else "Brak ceny"
 
                             ads.append({'link': link, 'title': title, 'price': price})
-                        except Exception as e:
-                            print(f"OLX parse error: {e}")
+                        except:
+                            continue
                 else:
                     ads = get_vinted_ads_with_selenium(url)
 
